@@ -57,7 +57,9 @@ exports.setup = function (mstream, server, program) {
         cb(false, 401, 'Unauthorized');
       }
       else {
-        jwt.verify(token, program.secret, (err, decoded) => {
+        const key = program.asymmetricPublicKey ? program.asymmetricPublicKey : program.secret;
+        const options = program.asymmetricPublicKey ? { algorithms: ['RS256'] } : {};
+        jwt.verify(token, key, options, (err, decoded) => {
           if (err) {
             cb(false, 401, 'Unauthorized');
             return;
@@ -79,7 +81,8 @@ exports.setup = function (mstream, server, program) {
             jukebox: true
           }
 
-          info.req.jwt = jwt.sign(sendData, program.secret);
+          const options = program.asymmetricPublicKey ? { algorithm: 'RS256' } : {};
+          info.req.jwt = jwt.sign(sendData, program.secret, options);
           cb(true);
         });
       }

@@ -127,9 +127,10 @@ exports.setup = function (mstream, program) {
         return res.redirect('/login-failed');
       }
 
+      const options = program.asymmetricPublicKey ? { algorithm: 'RS256' } : {};
       res.json({
         vpaths: program.users[username].vpaths,
-        token: jwt.sign({ username: username }, program.secret) // Make the token
+        token: jwt.sign({ username: username }, program.secret, options) // Make the token
       });
     });
   });
@@ -143,7 +144,9 @@ exports.setup = function (mstream, program) {
     }
 
     // verifies secret and checks exp
-    jwt.verify(token, program.secret, (err, decoded) => {
+    const key = program.asymmetricPublicKey ? program.asymmetricPublicKey : program.secret;
+    const options = program.asymmetricPublicKey ? { algorithms: ['RS256'] } : {};
+    jwt.verify(token, key, options, (err, decoded) => {
       if (err) {
         return res.redirect('/access-denied');
       }

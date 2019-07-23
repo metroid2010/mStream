@@ -29,7 +29,9 @@ exports.setupBeforeSecurity = function (mstream, program) {
       return res.status(404).json({ error: 'Playlist Not Found' })
     }
 
-    jwt.verify(playlistItem.token, program.secret, (err, decoded) => {
+    const key = program.asymmetricPublicKey ? program.asymmetricPublicKey : program.secret;
+    const options = program.asymmetricPublicKey ? { algorithms: ['RS256'] } : {};
+    jwt.verify(playlistItem.token, key, options, (err, decoded) => {
       if (err) {
         return res.redirect('/access-denied');
       }
@@ -61,10 +63,10 @@ exports.setupAfterSecurity = function (mstream, program) {
       shareToken: true,
       username: req.user.username
     }
-
+    const options = program.asymmetricPublicKey ? { algorithm: 'RS256', expiresIn: shareTimeInDays + 'd'  } : { expiresIn: shareTimeInDays + 'd' };
     const sharedItem = {
       playlist_id: nanoId(10),
-      token: jwt.sign(tokenData, program.secret, { expiresIn: shareTimeInDays + 'd' })
+      token: jwt.sign(tokenData, program.secret, options)
     };
 
     // Save to DB

@@ -154,8 +154,22 @@
       loadJson.federation.disableInvites = false;
     }
 
-    if(!loadJson.secret) {
-      loadJson.secret = crypto.randomBytes(Math.ceil(128/2)).toString('base64').slice(0,128);
+    if(!loadJson.asymmetricPublicKey) {
+      crypto.generateKeyPair('rsa', {
+        modulusLength: 1024,
+        publicKeyEncoding: {
+          type: 'spki',
+          format: 'pem'
+        },
+        privateKeyEncoding: {
+          type: 'pkcs8',
+          format: 'pem'
+        }
+      }, (err, publicKey, privateKey) => {
+        // Handle errors and use the generated key pair.
+        loadJson.secret = privateKey;
+        loadJson.asymmetricPublicKey = publicKey;
+      });    
     }
 
     if(typeof loadJson.noUpload !== 'boolean') {
@@ -731,7 +745,7 @@
                 </div>\
                 <div class="row row-mod">\
                   <div class="col s12">\
-                    <b>Secret Key:</b> {{secretKey}}\
+                    <b>Private Key:</b> {{secretKey}}\
                   </div>\
                   <div class="col s12 port-form-container">\
                     <label class="input-field">\
@@ -749,7 +763,7 @@
         </div>',
         computed: {
           secretKey: function() {
-            return `*****************${this.lJson.secret.slice(-6, -2)}`;
+            return `*****************${this.lJson.secret.slice(-41, -37)}`;
           }
         },
         methods: {
@@ -773,8 +787,25 @@
               position: 'center',
               buttons: [
                 ['<button><b>Reset</b></button>', (instance, toast) => {
-                  loadJson.secret = crypto.randomBytes(Math.ceil(256/2)).toString('base64').slice(0,256);
-                  fs.writeFileSync(configFile, JSON.stringify(loadJson), 'utf8');
+                  crypto.generateKeyPair('rsa', {
+                    modulusLength: 1024,
+                    publicKeyEncoding: {
+                      type: 'spki',
+                      format: 'pem'
+                    },
+                    privateKeyEncoding: {
+                      type: 'pkcs8',
+                      format: 'pem'
+                    }
+                  }, (err, publicKey, privateKey) => {
+                    if(err) {
+                      
+                    }
+                    // Handle errors and use the generated key pair.
+                    loadJson.secret = privateKey;
+                    loadJson.asymmetricPublicKey = publicKey;
+                    fs.writeFileSync(configFile, JSON.stringify(loadJson), 'utf8');
+                  });
                   instance.hide({ transitionOut: 'fadeOut' }, toast, 'button');
                 }, true],
                 ['<button>Go Back</button>', (instance, toast) => {

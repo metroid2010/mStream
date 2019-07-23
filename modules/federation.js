@@ -30,7 +30,9 @@ exports.setup = function (mstream, program) {
 
   mstream.post('/federation/invite/exchange', (req, res) => {
     try {
-      var decodedToken = jwt.verify(req.body.token, program.secret);
+      const key = program.asymmetricPublicKey ? program.asymmetricPublicKey : program.secret;
+      const options = program.asymmetricPublicKey ? { algorithms: ['RS256'] } : {};
+      var decodedToken = jwt.verify(key, program.secret, options);
     }catch(err) {
       return res.status(500).json({ error: 'Token verification failed' });
     }
@@ -47,7 +49,8 @@ exports.setup = function (mstream, program) {
       url: decodedToken.url
     }
 
-    const token = jwt.sign(tokenData, program.secret);
+    const options = program.asymmetricPublicKey ? { algorithm: 'RS256' } : {};
+    const token = jwt.sign(tokenData, program.secret, options);
     
     res.json({token: token});
 
@@ -175,13 +178,14 @@ exports.setup = function (mstream, program) {
       username: req.user.username
     }
 
-    const options = {};
+    const options = program.asymmetricPublicKey ? { algorithm: 'RS256' } : {};
     req.body.expirationTimeInDays = Number(req.body.expirationTimeInDays);
     if (req.body.expirationTimeInDays && Number.isInteger(req.body.expirationTimeInDays) && req.body.expirationTimeInDays > 0) {
       options.expiresIn = `${req.body.expirationTimeInDays}d`;
     }
 
-    const token = jwt.sign(tokenData, program.secret, options);
+    const key = program.asymmetricPublicKey ? program.asymmetricPublicKey : program.secret;
+    const token = jwt.sign(tokenData, key, options);
 
     // Return Token and ID
     res.json({token});
