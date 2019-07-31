@@ -4,8 +4,6 @@ image-cache/*
 !image-cache/default.png
 !image-cache/README.md
 
-save/*.json
-
 mstreamdb.lite
 mstream.db
 package-lock.json
@@ -29,3 +27,14 @@ appx/node_modules/*
 appx/dist/*
 
 .env
+
+save/sync2/*
+
+save/sync/*
+!save/sync/README.md
+
+save/db/*
+!save/db/README.md
+
+save/logs/*
+!save/logs/README.md
