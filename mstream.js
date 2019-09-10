@@ -57,21 +57,10 @@ exports.serveIt = function (program) {
   mstream.get('/j/*', (req, res) => {
     res.sendFile( 'mstream.html', { root: program.webAppDirectory });
   });
-  // It Really Whips The Llama's Ass
-  mstream.get('/winamp', (req, res) => {
-    res.sendFile('winamp.html', { root: program.webAppDirectory });
-  });
   // Serve Shared Page
   mstream.all('/shared/playlist/*', (req, res) => {
     res.sendFile( 'shared.html', { root: program.webAppDirectory });
   });
-  // Serve Jukebox Page
-  mstream.all('/remote', (req, res) => {
-    res.sendFile('remote.html', { root: program.webAppDirectory });
-  });
-
-  // JukeBox
-  jukebox.setup2(mstream, server, program);
   // Shared
   sharedModule.setupBeforeSecurity(mstream, program);
 
@@ -87,11 +76,6 @@ exports.serveIt = function (program) {
         username: "mstream-user",
         admin: true
       }
-    }
-
-    if (program['lastfm-user'] && program['lastfm-password']) {
-      program.users['mstream-user']['lastfm-user'] = program['lastfm-user']
-      program.users['mstream-user']['lastfm-password'] = program['lastfm-password']
     }
 
     // Fill in user vpaths
@@ -114,11 +98,8 @@ exports.serveIt = function (program) {
   require('./modules/file-explorer.js').setup(mstream, program);
   // Load database
   dbModule.setup(mstream, program);
-  federation.setup(mstream, program);
   // Transcoder
   // require("./modules/ffmpeg.js").setup(mstream, program);
-  // Scrobbler
-  require('./modules/scrobbler.js').setup(mstream, program);
   // Finish setting up the jukebox and shared
   jukebox.setup(mstream, server, program);
   sharedModule.setupAfterSecurity(mstream, program);
@@ -134,7 +115,6 @@ exports.serveIt = function (program) {
   server.listen(program.port, () => {
     const protocol = program.ssl && program.ssl.cert && program.ssl.key ? 'https' : 'http';
     winston.info(`Access mStream locally: ${protocol + '://localhost:' + program.port}`);
-    winston.info(`Try the WinAmp Demo: ${protocol + '://localhost:' + program.port}/winamp`);
 
     dbModule.runAfterBoot(program);
     ddns.setup(program);
